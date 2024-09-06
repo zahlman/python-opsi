@@ -17,7 +17,6 @@ pylint-pytest:
     MYSQL_DATABASE: "opsi"
   stage: test
   script: |
-    ping -c1 mysql
     mkdir -p /etc/opsi/licenses
     mkdir -p /var/log/opsi
 
