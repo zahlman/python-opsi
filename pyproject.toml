@@ -53,6 +53,7 @@ ruyaml = "^0.91"
 service-identity = "^24.1"
 sqlalchemy = ">=1.4,<2.0"
 tomlkit = "^0.13.2"
+typing-extensions = "^4.12"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^6.0"
