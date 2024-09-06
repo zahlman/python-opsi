@@ -51,8 +51,9 @@ python-pam = "^2.0"
 pyzsync = "^1.2"
 ruyaml = "^0.91"
 service-identity = "^24.1"
+six = "^1.16"
 sqlalchemy = ">=1.4,<2.0"
-tomlkit = "^0.13.2"
+tomlkit = "^0.13"
 typing-extensions = "^4.12"
 
 [tool.poetry.dev-dependencies]
