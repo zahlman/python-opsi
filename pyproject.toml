@@ -75,7 +75,7 @@ version = ">=303"
 
 [tool.poetry.dependencies.twisted]
 extras = [ "tls",]
-version = "^24.7"
+version = "^22.1"
 
 [tool.poetry.dependencies.wmi]
 platform = "win32"
