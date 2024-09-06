@@ -18,6 +18,7 @@ pylint-pytest:
     MYSQL_DATABASE: "opsi"
   stage: test
   script: |
+    ping -c1 mysql
     mkdir -p /etc/opsi/licenses
     mkdir -p /var/log/opsi
 
@@ -37,7 +38,7 @@ pylint-pytest:
     poetry install
     poetry run pylint --disable=R,C,fixme OPSI
     poetry add mysqlclient==2.1.1
-    poetry run pytest --tb=short -o junit_family=xunit2 --junitxml=testreport.xml --cov-append --cov-report term --cov-report xml -v tests
+    poetry run pytest --tb=short -x -o junit_family=xunit2 --junitxml=testreport.xml --cov-append --cov-report term --cov-report xml -v tests
   coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+)%/'
   artifacts:
     name: 'python-opsi_test'
