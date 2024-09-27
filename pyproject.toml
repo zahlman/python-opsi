@@ -32,9 +32,6 @@ use-tabs = true
 profile = "black"
 indent = "\t"
 
-[tool.ruff.format]
-indent-style = "tab"
-
 [tool.poetry.dependencies]
 python = ">=3.11,<3.13"
 attrs = "^24.2"
@@ -68,6 +65,9 @@ pytest-asyncio = "^0.24"
 pytest-cov = "^5.0"
 tan = "^23.3"
 isort = "^5.10.1"
+
+[tool.ruff.format]
+indent-style = "tab"
 
 [tool.poetry.dependencies.distro]
 platform = "linux"
