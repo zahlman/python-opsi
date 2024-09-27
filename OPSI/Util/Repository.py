@@ -1154,7 +1154,7 @@ class WebDAVRepository(HTTPRepository):
 		source = "/" + source.lstrip("/")
 		source_url = self.base_url.rstrip("/") + self._preProcessPath(source)
 		source_url = source_url.rstrip("/") + "/"
-
+		
 		if recursive and source in self._contentCache:
 			if time.time() - self._contentCache[source]["time"] > 60:
 				del self._contentCache[source]
