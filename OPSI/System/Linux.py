@@ -15,6 +15,9 @@ import tempfile
 
 import psutil
 from opsicommon.logging import get_logger
+from opsicommon.system.subprocess import (
+	get_subprocess_environment as opsicommon_get_subprocess_environment,
+)
 
 from OPSI.System import Posix
 from OPSI.System.Posix import (
@@ -207,7 +210,11 @@ def grant_session_access(username: str, session_id: str):
 		if env.get("DISPLAY") == session_id and env.get("XAUTHORITY"):
 			session_username = proc.username()
 			session_env = env
-			logger.debug("Found process of user %s with XDG_SESSION_CLASS %s", session_username, session_env.get("XDG_SESSION_CLASS"))
+			logger.debug(
+				"Found process of user %s with XDG_SESSION_CLASS %s",
+				session_username,
+				session_env.get("XDG_SESSION_CLASS"),
+			)
 			if env.get("XDG_SESSION_CLASS") != "greeter":
 				break
 
@@ -222,13 +229,19 @@ def grant_session_access(username: str, session_id: str):
 
 	sp_env = os.environ.copy()
 	sp_env.update(session_env)
-	sp_env = get_subprocess_environment(sp_env)
+	sp_env = opsicommon_get_subprocess_environment(sp_env)
 	logger.debug("Using process env: %s", sp_env)
 
 	# Allow user to connect to X
 	xhost_cmd = ["sudo", "-u", session_username, "xhost", f"+si:localuser:{username}"]
 	logger.info("Running command %s", xhost_cmd)
-	process = subprocess.run(xhost_cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=sp_env, check=False)
+	process = subprocess.run(
+		xhost_cmd,
+		stdout=subprocess.PIPE,
+		stderr=subprocess.STDOUT,
+		env=sp_env,
+		check=False,
+	)
 	out = process.stdout.decode("utf-8", "replace") if process.stdout else ""
 	logger.debug("xhost output: %s", out)
 	return sp_env
@@ -256,7 +269,9 @@ def mount(dev, mountpoint, **options):  # pylint: disable=too-many-locals,too-ma
 		os.makedirs(mountpoint)
 
 	if is_mounted(mountpoint):
-		logger.debug("Mountpoint '%s' already mounted, umounting before mount", mountpoint)
+		logger.debug(
+			"Mountpoint '%s' already mounted, umounting before mount", mountpoint
+		)
 		umount(mountpoint)
 
 	fs = ""
@@ -275,10 +290,16 @@ def mount(dev, mountpoint, **options):  # pylint: disable=too-many-locals,too-ma
 				options["password"] = ""
 			if "\\" in options["username"]:
 				options["username"] = re.sub(r"\\+", r"\\", options["username"])
-				(options["domain"], options["username"]) = options["username"].split("\\", 1)
+				(options["domain"], options["username"]) = options["username"].split(
+					"\\", 1
+				)
 
-			tf = tempfile.NamedTemporaryFile(mode="w", delete=False, encoding="iso-8859-15")  # pylint: disable=consider-using-with
-			tf.write(f"username={options['username']}\npassword={options['password']}\n")
+			tf = tempfile.NamedTemporaryFile(
+				mode="w", delete=False, encoding="iso-8859-15"
+			)  # pylint: disable=consider-using-with
+			tf.write(
+				f"username={options['username']}\npassword={options['password']}\n"
+			)
 			tf.close()
 			tmp_files.append(tf.name)
 			options["credentials"] = tf.name
@@ -308,11 +329,15 @@ def mount(dev, mountpoint, **options):  # pylint: disable=too-many-locals,too-ma
 		if "password" not in options:
 			options["password"] = ""
 
-		with tempfile.NamedTemporaryFile(mode="w", delete=False, encoding="utf-8") as conf_file:
+		with tempfile.NamedTemporaryFile(
+			mode="w", delete=False, encoding="utf-8"
+		) as conf_file:
 			tmp_files.append(conf_file.name)
 			os.chmod(conf_file.name, 0o644)
 			options["conf"] = conf_file.name
-			conf_file.write("n_cookies 1\ncache_size 0\ntable_size 16384\nuse_locks 0\n")
+			conf_file.write(
+				"n_cookies 1\ncache_size 0\ntable_size 16384\nuse_locks 0\n"
+			)
 			if options.get("ca_cert_file"):
 				ca_cert_file = os.path.abspath(options["ca_cert_file"])
 				if not os.path.exists(ca_cert_file):
@@ -320,7 +345,9 @@ def mount(dev, mountpoint, **options):  # pylint: disable=too-many-locals,too-ma
 
 				# Make sure ca file is readable by davfs2
 				with open(ca_cert_file, "r", encoding="utf-8") as infile:
-					with tempfile.NamedTemporaryFile(mode="w", delete=False, encoding="utf-8") as tmp_cert_file:
+					with tempfile.NamedTemporaryFile(
+						mode="w", delete=False, encoding="utf-8"
+					) as tmp_cert_file:
 						tmp_files.append(tmp_cert_file.name)
 						os.chmod(tmp_cert_file.name, 0o644)
 						conf_file.write(f"trust_ca_cert {tmp_cert_file.name}\n")
@@ -329,7 +356,11 @@ def mount(dev, mountpoint, **options):  # pylint: disable=too-many-locals,too-ma
 
 		# Username, Password, Accept certificate for this session? [y,N]
 		accept_cert = "n" if options.get("verify_server_cert") else "y"
-		stdin_data = f"{options['username']}\n{options['password']}\n{accept_cert}\n".encode("utf-8")
+		stdin_data = (
+			f"{options['username']}\n{options['password']}\n{accept_cert}\n".encode(
+				"utf-8"
+			)
+		)
 
 		del options["username"]
 		del options["password"]
@@ -362,11 +393,23 @@ def mount(dev, mountpoint, **options):  # pylint: disable=too-many-locals,too-ma
 					optString = ""
 				proc_env = os.environ.copy()
 				proc_env["LC_ALL"] = "C"
-				execute(f"{which('mount')} {fs} {optString} {dev} {mountpoint}", env=proc_env, stdin_data=stdin_data)
+				execute(
+					f"{which('mount')} {fs} {optString} {dev} {mountpoint}",
+					env=proc_env,
+					stdin_data=stdin_data,
+				)
 				break
 			except Exception as err:  # pylint: disable=broad-except
-				if fs == "-t cifs" and "vers=2.0" not in mount_options and "error(95)" in str(err):
-					logger.warning("Failed to mount '%s': %s, retrying with option vers=2.0", dev, err)
+				if (
+					fs == "-t cifs"
+					and "vers=2.0" not in mount_options
+					and "error(95)" in str(err)
+				):
+					logger.warning(
+						"Failed to mount '%s': %s, retrying with option vers=2.0",
+						dev,
+						err,
+					)
 					mount_options.append("vers=2.0")
 				else:
 					logger.error("Failed to mount '%s': %s", dev, err)
