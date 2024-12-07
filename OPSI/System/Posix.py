@@ -1565,7 +1565,7 @@ class Harddisk:  # pylint: disable=too-many-instance-attributes,too-many-public-
 					part_id = "07"
 				else:
 					raise ValueError(f"Partition type '{part_id}' not supported!")
-			part_id = eval("0x" + part_id)  # pylint: disable=eval-used
+			part_id = int(part_id, 16)
 			offset = 0x1BE + (partition - 1) * 16 + 4
 			with open(self.device, "rb+") as file:
 				file.seek(offset)
